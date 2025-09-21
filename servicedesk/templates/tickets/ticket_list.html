@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Список обращений</h1>
+
+<!-- Фильтр по статусу -->
+<div class="mb-3">
+    <label>Фильтр по статусу:</label>
+    <select class="form-select" onchange="location = this.value;">
+        <option value="?status=" {% if not status_filter %}selected{% endif %}>Все</option>
+        <option value="?status=new" {% if status_filter == 'new' %}selected{% endif %}>Новые</option>
+        <option value="?status=in_progress" {% if status_filter == 'in_progress' %}selected{% endif %}>В работе</option>
+        <option value="?status=closed" {% if status_filter == 'closed' %}selected{% endif %}>Закрытые</option>
+    </select>
+</div>
+
+<!-- Таблица с обращениями -->
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Тема</th>
+            <th>Email</th>
+            <th>Статус</th>
+            <th>Создано</th>
+            <th>Назначено</th>
+            <th>Действия</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for ticket in tickets %}
+        <tr>
+            <td>{{ ticket.id }}</td>
+            <td>
+                <a href="{% url 'ticket_detail' ticket.id %}">
+                    {{ ticket.subject }}
+                </a>
+            </td>
+            <td>{{ ticket.user_email }}</td>
+            <td>
+                <span class="badge 
+                    {% if ticket.status == 'new' %}bg-danger
+                    {% elif ticket.status == 'in_progress' %}bg-warning
+                    {% else %}bg-success{% endif %}">
+                    {{ ticket.get_status_display }}
+                </span>
+            </td>
+            <td>{{ ticket.created_at|date:"d.m.Y H:i" }}</td>
+            <td>
+                {% if ticket.assigned_to %}
+                    {{ ticket.assigned_to.username }}
+                {% else %}
+                    <span class="text-muted">Не назначено</span>
+                {% endif %}
+            </td>
+            <td>
+                <a href="{% url 'ticket_detail' ticket.id %}" class="btn btn-sm btn-primary">
+                    Открыть
+                </a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="7" class="text-center">Нет обращений</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
