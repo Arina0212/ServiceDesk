@@ -11,6 +11,7 @@ from django.http import JsonResponse
 from django.utils import timezone
 from .models import Ticket, Message
 from .forms import ReplyForm
+from .email_service import send_operator_reply, send_ticket_closed_notification
 
 @csrf_exempt  # Отключаем CSRF защиту для этого view (для внешних сервисов)
 @require_http_methods(["POST"])  # Разрешаем только POST запросы
@@ -102,7 +103,8 @@ def ticket_detail(request, ticket_id):
             ticket.updated_at = timezone.now()
             ticket.save()
             
-            # TODO: Здесь будет отправка email пользователю
+            # Отправка ответа пользователю
+            send_operator_reply(ticket, message_text, request.user.username)
             # пока просто редирект на эту же страницу
             return redirect('ticket_detail', ticket_id=ticket.id)
     
@@ -141,5 +143,7 @@ def close_ticket(request, ticket_id):
     ticket.status = 'closed'
     ticket.save()
     
-    # TODO: Здесь будет отправка email о закрытии
+    # Отправка уведомления о закрытии
+    send_ticket_closed_notification(ticket)
+
     return redirect('ticket_list')
