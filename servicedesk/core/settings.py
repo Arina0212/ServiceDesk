@@ -4,7 +4,6 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 
-
 # Загружаем переменные из .env файла
 load_dotenv()
 SECRET_KEY = '#=w^tc!g0eo32-ql3wwqw0elb&i=njcud&zv3@osr#hp(r0iyj'

@@ -1,5 +1,6 @@
 from django import forms
 
+
 class ReplyForm(forms.Form):
     """
     Простая форма для ответа пользователю.

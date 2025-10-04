@@ -3,19 +3,20 @@ from django.core.mail import send_mail
 from django.conf import settings
 from django.template.loader import render_to_string
 
+
 def send_operator_reply(ticket, message_text, operator_name):
     """
     Отправляет ответ оператора пользователю
     """
     subject = f"Re: {ticket.subject} [#{ticket.id}]"
-    
+
     # Красивое оформление письма в HTML
     html_message = render_to_string('tickets/email_operator_reply.html', {
         'ticket': ticket,
         'message_text': message_text,
         'operator_name': operator_name,
     })
-    
+
     # Простой текст для почтовых клиентов
     plain_message = f"""
     Здравствуйте!
@@ -33,7 +34,7 @@ def send_operator_reply(ticket, message_text, operator_name):
     С уважением,
     Служба поддержки ServiceDesk
     """
-    
+
     try:
         send_mail(
             subject=subject,
@@ -49,16 +50,17 @@ def send_operator_reply(ticket, message_text, operator_name):
         print(f"Ошибка отправки ответа: {e}")
         return False
 
+
 def send_ticket_closed_notification(ticket):
     """
     Отправляет уведомление о закрытии обращения
     """
     subject = f"Ваше обращение #{ticket.id} закрыто"
-    
+
     html_message = render_to_string('tickets/email_ticket_closed.html', {
         'ticket': ticket,
     })
-    
+
     plain_message = f"""
     Здравствуйте!
     
@@ -72,7 +74,7 @@ def send_ticket_closed_notification(ticket):
     С уважением,
     Служба поддержки ServiceDesk
     """
-    
+
     try:
         send_mail(
             subject=subject,
@@ -87,7 +89,8 @@ def send_ticket_closed_notification(ticket):
     except Exception as e:
         print(f"Ошибка отправки уведомления: {e}")
         return False
-    
+
+
 def send_autoreply(to_email, ticket_id):
     """
     Отправляет автоматический ответ пользователю
@@ -96,7 +99,7 @@ def send_autoreply(to_email, ticket_id):
     html_message = render_to_string('tickets/email_autoreply.html', {
         'ticket': ticket_id,
     })
-    
+
     message = f"""
     Здравствуйте!
     

@@ -13,6 +13,7 @@ from .models import Ticket, Message
 from .forms import ReplyForm
 from .email_service import send_operator_reply, send_ticket_closed_notification
 
+
 @csrf_exempt  # Отключаем CSRF защиту для этого view (для внешних сервисов)
 @require_http_methods(["POST"])  # Разрешаем только POST запросы
 def inbound_email_webhook(request):
@@ -22,30 +23,28 @@ def inbound_email_webhook(request):
     try:
         # Парсим JSON из тела запроса
         data = json.loads(request.body)
-        
+
         # Извлекаем данные письма (зависит от формата SendGrid)
         from_email = data.get('from')
         subject = data.get('subject')
         body = data.get('text') or data.get('html', '')
-        
+
         # Обрабатываем письмо
         ticket = process_incoming_email(from_email, subject, body)
-        
+
         # Возвращаем успешный ответ
         return JsonResponse({
-            'status': 'success', 
+            'status': 'success',
             'ticket_id': ticket.id,
             'message': 'Email processed successfully'
         })
-        
+
     except Exception as e:
         # Если что-то пошло не так - возвращаем ошибку
         return JsonResponse({
             'status': 'error',
             'message': str(e)
         }, status=500)
-    
-
 
 
 @login_required  # Только для авторизованных пользователей
@@ -56,23 +55,24 @@ def ticket_list(request):
     """
     # Получаем статус для фильтрации из параметров URL
     status_filter = request.GET.get('status', '')
-    
+
     # Получаем параметр сортировки из URL
     sort_order = request.GET.get('sort', 'newest')
-    
+
     # Получаем все обращения
     tickets = Ticket.objects.all()
-    
+
     # Фильтруем по статусу если выбран
     if status_filter:
         tickets = tickets.filter(status=status_filter)
-    
+
     # Сортируем по дате создания в зависимости от выбранного порядка
     if sort_order == 'oldest':
         tickets = tickets.order_by('created_at')  # Старые сверху
     else:
-        tickets = tickets.order_by('-created_at')  # Новые сверху (по умолчанию)
-    
+        # Новые сверху (по умолчанию)
+        tickets = tickets.order_by('-created_at')
+
     # Передаем данные в шаблон
     context = {
         'tickets': tickets,
@@ -80,6 +80,7 @@ def ticket_list(request):
         'sort_order': sort_order,
     }
     return render(request, 'tickets/ticket_list.html', context)
+
 
 @login_required
 def ticket_detail(request, ticket_id):
@@ -89,10 +90,10 @@ def ticket_detail(request, ticket_id):
     """
     # Находим обращение или показываем 404 ошибку
     ticket = get_object_or_404(Ticket, id=ticket_id)
-    
+
     # Форма для ответа пользователю
     form = ReplyForm()
-    
+
     # Обработка ответа оператора
     if request.method == 'POST':
         form = ReplyForm(request.POST)
@@ -105,19 +106,19 @@ def ticket_detail(request, ticket_id):
                 sender=request.user,  # Текущий пользователь
                 is_from_user=False    # Сообщение от оператора
             )
-            
+
             # Обновляем дату изменения обращения
             ticket.updated_at = timezone.now()
             ticket.save()
-            
+
             # Отправка ответа пользователю
             send_operator_reply(ticket, message_text, request.user.username)
             # пока просто редирект на эту же страницу
             return redirect('ticket_detail', ticket_id=ticket.id)
-    
+
     # Получаем все сообщения этого обращения
     messages = ticket.messages.all().order_by('created_at')
-    
+
     context = {
         'ticket': ticket,
         'messages': messages,
@@ -125,19 +126,21 @@ def ticket_detail(request, ticket_id):
     }
     return render(request, 'tickets/ticket_detail.html', context)
 
+
 @login_required
 def take_ticket(request, ticket_id):
     """
     Взять обращение в работу.
     """
     ticket = get_object_or_404(Ticket, id=ticket_id)
-    
+
     # Назначаем обращение на текущего пользователя
     ticket.assigned_to = request.user
     ticket.status = 'in_progress'
     ticket.save()
-    
+
     return redirect('ticket_detail', ticket_id=ticket.id)
+
 
 @login_required
 def close_ticket(request, ticket_id):
@@ -145,11 +148,11 @@ def close_ticket(request, ticket_id):
     Закрыть обращение.
     """
     ticket = get_object_or_404(Ticket, id=ticket_id)
-    
+
     # Меняем статус на закрытый
     ticket.status = 'closed'
     ticket.save()
-    
+
     # Отправка уведомления о закрытии
     send_ticket_closed_notification(ticket)
 
