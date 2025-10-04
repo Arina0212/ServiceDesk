@@ -48,6 +48,7 @@ pip install -r requirements.txt
 ```bash
 # Примените миграции
 python manage.py migrate
+python manage.py makemigrations
 
 # Создайте суперпользователя (оператора)
 python manage.py createsuperuser
