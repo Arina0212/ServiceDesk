@@ -3,15 +3,24 @@
 {% block content %}
 <h1>Список обращений</h1>
 
-<!-- Фильтр по статусу -->
-<div class="mb-3">
-    <label>Фильтр по статусу:</label>
-    <select class="form-select" onchange="location = this.value;">
-        <option value="?status=" {% if not status_filter %}selected{% endif %}>Все</option>
-        <option value="?status=new" {% if status_filter == 'new' %}selected{% endif %}>Новые</option>
-        <option value="?status=in_progress" {% if status_filter == 'in_progress' %}selected{% endif %}>В работе</option>
-        <option value="?status=closed" {% if status_filter == 'closed' %}selected{% endif %}>Закрытые</option>
-    </select>
+<!-- Фильтры и сортировка -->
+<div class="row mb-3">
+    <div class="col-md-6">
+        <label>Фильтр по статусу:</label>
+        <select class="form-select" id="statusFilter" onchange="updateFilters()">
+            <option value="" {% if not status_filter %}selected{% endif %}>Все</option>
+            <option value="new" {% if status_filter == 'new' %}selected{% endif %}>Новые</option>
+            <option value="in_progress" {% if status_filter == 'in_progress' %}selected{% endif %}>В работе</option>
+            <option value="closed" {% if status_filter == 'closed' %}selected{% endif %}>Закрытые</option>
+        </select>
+    </div>
+    <div class="col-md-6">
+        <label>Сортировка по дате:</label>
+        <select class="form-select" id="sortOrder" onchange="updateFilters()">
+            <option value="newest" {% if sort_order == 'newest' %}selected{% endif %}>Новые сверху</option>
+            <option value="oldest" {% if sort_order == 'oldest' %}selected{% endif %}>Старые сверху</option>
+        </select>
+    </div>
 </div>
 
 <!-- Таблица с обращениями -->
@@ -66,4 +75,32 @@
         {% endfor %}
     </tbody>
 </table>
+
+<script>
+function updateFilters() {
+    const statusFilter = document.getElementById('statusFilter').value;
+    const sortOrder = document.getElementById('sortOrder').value;
+    
+    // Строим URL с параметрами
+    let url = window.location.pathname + '?';
+    const params = [];
+    
+    if (statusFilter) {
+        params.push('status=' + encodeURIComponent(statusFilter));
+    }
+    
+    if (sortOrder && sortOrder !== 'newest') {
+        params.push('sort=' + encodeURIComponent(sortOrder));
+    }
+    
+    if (params.length > 0) {
+        url += params.join('&');
+    } else {
+        url = window.location.pathname;
+    }
+    
+    // Переходим на новую страницу
+    window.location.href = url;
+}
+</script>
 {% endblock %}

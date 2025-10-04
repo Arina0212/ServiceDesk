@@ -57,6 +57,9 @@ def ticket_list(request):
     # Получаем статус для фильтрации из параметров URL
     status_filter = request.GET.get('status', '')
     
+    # Получаем параметр сортировки из URL
+    sort_order = request.GET.get('sort', 'newest')
+    
     # Получаем все обращения
     tickets = Ticket.objects.all()
     
@@ -64,13 +67,17 @@ def ticket_list(request):
     if status_filter:
         tickets = tickets.filter(status=status_filter)
     
-    # Сортируем по дате создания (новые сверху)
-    tickets = tickets.order_by('-created_at')
+    # Сортируем по дате создания в зависимости от выбранного порядка
+    if sort_order == 'oldest':
+        tickets = tickets.order_by('created_at')  # Старые сверху
+    else:
+        tickets = tickets.order_by('-created_at')  # Новые сверху (по умолчанию)
     
     # Передаем данные в шаблон
     context = {
         'tickets': tickets,
         'status_filter': status_filter,
+        'sort_order': sort_order,
     }
     return render(request, 'tickets/ticket_list.html', context)
 

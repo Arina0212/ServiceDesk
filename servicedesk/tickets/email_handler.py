@@ -50,30 +50,3 @@ def process_incoming_email(from_email, subject, body):
     except Exception as e:
         print(f"Ошибка обработки входящего письма: {e}")
         raise e
-
-
-# def send_autoreply(to_email, ticket_id):
-    """
-    Отправляет автоматический ответ пользователю
-    """
-    subject = f"Ваше обращение #{ticket_id} принято в работу"
-    message = f"""
-    Здравствуйте!
-    
-    Мы получили ваше обращение и уже начали его обработку.
-    Номер вашего обращения: #{ticket_id}
-    
-    Наши операторы свяжутся с вами в ближайшее время.
-    
-    С уважением,
-    Служба поддержки
-    """
-    
-    # Отправляем письмо через Django
-    send_mail(
-        subject,
-        message,
-        settings.DEFAULT_FROM_EMAIL,  # от кого (берется из настроек)
-        [to_email],  # кому (список адресов)
-        fail_silently=False,  # если ошибка - покажем ее
-    )
